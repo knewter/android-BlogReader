@@ -16,15 +16,16 @@ import org.json.JSONObject;
 
 import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
-import android.view.Menu;
 import android.view.View;
-import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -55,6 +56,26 @@ public class MainListActivity extends ListActivity {
           Toast.makeText(this, "No network available.", Toast.LENGTH_LONG).show();
         }
     }
+    
+    @Override
+    protected void onListItemClick(ListView l, View v, int position, long id) {
+    	super.onListItemClick(l, v, position, id);
+    	JSONArray jsonPosts;
+		try {
+			jsonPosts = mBlogData.getJSONArray("posts");
+			JSONObject jsonPost = jsonPosts.getJSONObject(position);
+	    	String blogUrl = jsonPost.getString("url");
+	    	Intent intent = new Intent(this, BlogViewWebActivity.class);
+	    	intent.setData(Uri.parse(blogUrl));
+	    	startActivity(intent);
+		} catch (JSONException e) {
+			logException(e);
+		}
+    }
+
+	private void logException(Exception e) {
+		Log.e(TAG, "Exception caught", e);
+	}
 
     private boolean isNetworkAvailable() {
 		ConnectivityManager manager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
@@ -97,7 +118,7 @@ public class MainListActivity extends ListActivity {
 						android.R.layout.simple_list_item_2, keys, ids);
 				setListAdapter(adapter);
 			} catch (JSONException e) {
-				Log.d(TAG, "Exception caught", e);
+				logException(e);
 			}
     	}
     }
@@ -113,14 +134,6 @@ public class MainListActivity extends ListActivity {
 		TextView emptyTextView = (TextView) getListView().getEmptyView();
 		emptyTextView.setText(getString(R.string.no_items));
 	}
-
-
-	@Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main_list, menu);
-        return true;
-    }
     
     private class GetBlogPostsTask extends AsyncTask<Object, Void, JSONObject> {
     	@Override
@@ -156,7 +169,7 @@ public class MainListActivity extends ListActivity {
     		} catch (IOException e){
     			Log.e(TAG, "There was an IOException.", e);
     		} catch (Exception e) {
-    		    Log.e(TAG, "There was a generic exception.", e);
+    			logException(e);
     		}
 
 			return jsonResponse;
