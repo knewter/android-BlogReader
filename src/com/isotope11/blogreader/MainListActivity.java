@@ -1,11 +1,5 @@
 package com.isotope11.blogreader;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,86 +26,82 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainListActivity extends ListActivity {
-	
+
 	protected String mBlogPostTitles[] = {};
-	protected JSONObject mBlogData;
+	protected JSONArray mBlogData;
 	protected ProgressBar mProgressBar;
-	public static final int NUMBER_OF_POSTS = 20;
 	public static final String TAG = MainListActivity.class.getSimpleName();
 	private final String KEY_TITLE = "title";
-	private final String KEY_AUTHOR = "author";
+	private final String KEY_AUTHOR = "user";
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main_list);
-        
-        mProgressBar = (ProgressBar) findViewById(R.id.progressBar1);
-        
-        if(isNetworkAvailable()){
-        	GetBlogPostsTask getBlogPostsTask = new GetBlogPostsTask();
-        	mProgressBar.setVisibility(View.VISIBLE);
-        	getBlogPostsTask.execute();
-        } else {
-          Toast.makeText(this, "No network available.", Toast.LENGTH_LONG).show();
-        }
-    }
-    
-    @Override
-    protected void onListItemClick(ListView l, View v, int position, long id) {
-    	super.onListItemClick(l, v, position, id);
-    	JSONArray jsonPosts;
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main_list);
+
+		mProgressBar = (ProgressBar) findViewById(R.id.progressBar1);
+
+		if(isNetworkAvailable()){
+			GetBlogPostsTask getBlogPostsTask = new GetBlogPostsTask();
+			mProgressBar.setVisibility(View.VISIBLE);
+			getBlogPostsTask.execute();
+		} else {
+			Toast.makeText(this, "No network available.", Toast.LENGTH_LONG).show();
+		}
+	}
+
+	@Override
+	protected void onListItemClick(ListView l, View v, int position, long id) {
+		super.onListItemClick(l, v, position, id);
 		try {
-			jsonPosts = mBlogData.getJSONArray("posts");
-			JSONObject jsonPost = jsonPosts.getJSONObject(position);
-	    	String blogUrl = jsonPost.getString("url");
-	    	Intent intent = new Intent(this, BlogViewWebActivity.class);
-	    	intent.setData(Uri.parse(blogUrl));
-	    	startActivity(intent);
+			JSONObject jsonPost = mBlogData.getJSONObject(position);
+			String blogUrl = jsonPost.getString("url");
+			Intent intent = new Intent(this, BlogViewWebActivity.class);
+			intent.setData(Uri.parse(blogUrl));
+			startActivity(intent);
 		} catch (JSONException e) {
 			logException(e);
 		}
-    }
+	}
 
 	private void logException(Exception e) {
 		Log.e(TAG, "Exception caught", e);
 	}
 
-    private boolean isNetworkAvailable() {
+	private boolean isNetworkAvailable() {
 		ConnectivityManager manager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = manager.getActiveNetworkInfo();
-		
+
 		boolean isAvailable = false;
 		if (networkInfo != null && networkInfo.isConnected()){
 			isAvailable = true;
 		}
 		return isAvailable;
 	}
-    
-    protected void handleBlogResponse(){
-    	mProgressBar.setVisibility(View.INVISIBLE);
-    	if(mBlogData == null){
-    		updateDisplayForError();
-    	} else {
-    		try {
-				JSONArray jsonPosts = mBlogData.getJSONArray("posts");
+
+	protected void handleBlogResponse(){
+		mProgressBar.setVisibility(View.INVISIBLE);
+		if(mBlogData == null){
+			updateDisplayForError();
+		} else {
+			try {
 				ArrayList<HashMap<String, String>> blogPosts = 
 						new ArrayList<HashMap<String, String>>();
-				
-				for (int i = 0; i < jsonPosts.length(); i++){
-					JSONObject post = jsonPosts.getJSONObject(i);
+
+				for (int i = 0; i < mBlogData.length(); i++){
+					JSONObject post = mBlogData.getJSONObject(i);
 					String title = post.getString(KEY_TITLE);
 					title = Html.fromHtml(title).toString();
-					String author = post.getString(KEY_AUTHOR);
+					String author = post.getJSONObject(KEY_AUTHOR).getString("to_s");
 					author = Html.fromHtml(author).toString();
-					
+
 					HashMap<String, String> blogPost = new HashMap<String, String>();
 					blogPost.put(KEY_TITLE, title);
 					blogPost.put(KEY_AUTHOR, author);
-					
+
 					blogPosts.add(blogPost);
 				}
-				
+
 				String[] keys = { KEY_TITLE, KEY_AUTHOR };
 				int[] ids = {android.R.id.text1, android.R.id.text2};
 				SimpleAdapter adapter = new SimpleAdapter(this, blogPosts,
@@ -120,8 +110,8 @@ public class MainListActivity extends ListActivity {
 			} catch (JSONException e) {
 				logException(e);
 			}
-    	}
-    }
+		}
+	}
 
 	private void updateDisplayForError() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -130,56 +120,30 @@ public class MainListActivity extends ListActivity {
 		builder.setPositiveButton(android.R.string.ok, null);
 		AlertDialog dialog = builder.create();
 		dialog.show();
-		
+
 		TextView emptyTextView = (TextView) getListView().getEmptyView();
 		emptyTextView.setText(getString(R.string.no_items));
 	}
-    
-    private class GetBlogPostsTask extends AsyncTask<Object, Void, JSONObject> {
-    	@Override
-    	protected JSONObject doInBackground(Object... arg0) {
-    		JSONObject jsonResponse = null;
-            int responseCode = -1;
-    		try {
-    			URL blogFeedUrl = new URL("http://blog.teamtreehouse.com/api/get_recent_summary/?count=" + NUMBER_OF_POSTS);
-    			HttpURLConnection connection = (HttpURLConnection) blogFeedUrl.openConnection();
-    			connection.connect();
-    			
-    			responseCode = connection.getResponseCode();
-    			Log.i(TAG, "Code: " + responseCode);
-    			
-    			if(responseCode == HttpURLConnection.HTTP_OK){
-    				InputStream inputStream = connection.getInputStream();
-    				Reader reader = (Reader) new InputStreamReader(inputStream);
-    				int contentLength = connection.getContentLength();
-    				char[] charArray = new char[contentLength];
-    				reader.read(charArray);
-    				String responseData = new String(charArray);
-    				Log.v(TAG, responseData);
-    				
-    				jsonResponse = new JSONObject(responseData);
-    				String status = jsonResponse.getString("status");
-    				Log.v(TAG, status);
-    			} else {
-    				Log.i(TAG, "Non-200 response: " + responseCode);
-    			}
-    		} catch (MalformedURLException e) {
-    			// TODO Auto-generated catch block
-    			Log.e(TAG, "There was a malformed url.", e);
-    		} catch (IOException e){
-    			Log.e(TAG, "There was an IOException.", e);
-    		} catch (Exception e) {
-    			logException(e);
-    		}
 
+	private class GetBlogPostsTask extends AsyncTask<Object, Void, JSONArray> {
+		@Override
+		protected JSONArray doInBackground(Object... arg0) {
+			JSONArray jsonResponse = null;
+			try {
+				URL blogFeedUrl = new URL("http://isotope11.com/blog.json");
+
+				String responseData = new GetsUrlContents(blogFeedUrl).execute();
+				jsonResponse = new JSONArray(responseData);
+			} catch (Exception e) {
+				logException(e);
+			}
 			return jsonResponse;
-    	}
-    	
-    	@Override
-    	protected void onPostExecute(JSONObject result){
-    		mBlogData = result;
-    		handleBlogResponse();
-    	}
-    }
+		}
 
+		@Override
+		protected void onPostExecute(JSONArray result){
+			mBlogData = result;
+			handleBlogResponse();
+		}
+	}
 }
