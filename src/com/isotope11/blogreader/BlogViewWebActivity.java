@@ -56,33 +56,33 @@ public class BlogViewWebActivity extends Activity {
 
 		return super.onOptionsItemSelected(item);
 	}
-	
+
 	@SuppressLint("SetJavaScriptEnabled")
 	public void handleBlogPostResponse(){
 		WebView webView = (WebView) findViewById(R.id.webView1);
 		webView.getSettings().setJavaScriptEnabled(true);
-		
+
 		String localData = new String(mBlogPostData);
 		String customCSS = "#top_area { display: none; }\n" +
 				".work_content_right.recent { display: none !important; }\n" +
 				"p.supplemental { display: none; }\n" +
 				".share { display: none; }\n" +
-				".work_content_left.blog_show .blog_post .blog_content { margin: 0 !important; }\n" + 
+				".work_content_left.blog_show .blog_post .blog_content { margin: 0 !important; }\n" +
 				".work_content_left { width: 100% !important; }" +
-				"span.tags { margin: 0; }\n" + 
+				"span.tags { margin: 0; }\n" +
 				".author_bio { margin: 0; }\n" +
 				"footer { display: none; }\n";
 		localData = localData.replaceAll("</head>", "<style>" + customCSS + "</style></head>");
-		
+
 		String customJS = "progress.hide();";
-		localData = localData.replaceAll("</body>", "<script>" + customJS + "</script></body>");
-		
+		localData = localData.replaceAll("<body>", "<body><script>" + customJS + "</script>");
+
 		webView.setWebViewClient(new WebViewClient());
 		webView.setWebChromeClient(new WebChromeClient());
 		ProgressBarHider progressBarHider = new ProgressBarHider(mProgressBar);
 		webView.addJavascriptInterface(progressBarHider, "progress");
-		
-        webView.loadDataWithBaseURL(mBlogUri.toString(), localData, "text/html", "UTF-8", null);
+
+    webView.loadDataWithBaseURL(mBlogUri.toString(), localData, "text/html", "UTF-8", null);
 	}
 
 	public void sharePost() {
@@ -91,7 +91,7 @@ public class BlogViewWebActivity extends Activity {
 		shareIntent.putExtra(Intent.EXTRA_TEXT, mUrl);
 		startActivity(Intent.createChooser(shareIntent, getString(R.string.share_choose_title)));
 	}
-	
+
 	private class GetBlogPostTask extends AsyncTask<Object, Void, String> {
 		@Override
 		protected String doInBackground(Object... arg0) {
@@ -106,7 +106,7 @@ public class BlogViewWebActivity extends Activity {
 			}
 			return responseData;
 		}
-		
+
 		@Override
 		protected void onPostExecute(String response){
 			mUrl = mBlogUri.toString();
@@ -114,13 +114,13 @@ public class BlogViewWebActivity extends Activity {
 			handleBlogPostResponse();
 		}
 	}
-	
+
 	private class ProgressBarHider{
 		ProgressBar mProgressBar;
 		public ProgressBarHider(ProgressBar progress){
 			mProgressBar = progress;
 		}
-		
+
 		@SuppressWarnings("unused")
 		@JavascriptInterface
 		public void hide(){
