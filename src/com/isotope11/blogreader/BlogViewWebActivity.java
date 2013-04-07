@@ -75,7 +75,7 @@ public class BlogViewWebActivity extends Activity {
 		localData = localData.replaceAll("</head>", "<style>" + customCSS + "</style></head>");
 
 		String customJS = "progress.hide();";
-		localData = localData.replaceAll("<body>", "<body><script>" + customJS + "</script>");
+		localData = localData.replaceAll("</body>", "<script>" + customJS + "</script></body>");
 
 		webView.setWebViewClient(new WebViewClient());
 		webView.setWebChromeClient(new WebChromeClient());
