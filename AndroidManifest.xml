@@ -4,31 +4,39 @@
     android:versionCode="6"
     android:versionName="1.5" >
 
-    <uses-sdk
-        android:minSdkVersion="8"
-        android:targetSdkVersion="17" />
+  <uses-sdk
+      android:minSdkVersion="8"
+      android:targetSdkVersion="17" />
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <application
-        android:allowBackup="true"
-        android:icon="@drawable/i11_rings"
-        android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
-        <activity
-            android:name="com.isotope11.blogreader.MainListActivity"
-            android:label="@string/app_name" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+  <application
+      android:allowBackup="true"
+      android:icon="@drawable/i11_rings"
+      android:label="@string/app_name"
+      android:theme="@style/AppTheme" >
+    <activity
+        android:name="com.isotope11.blogreader.MainListActivity"
+        android:label="@string/app_name" >
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name="com.isotope11.blogreader.BlogViewWebActivity"
-            android:label="@string/title_activity_blog_view_web" >
-        </activity>
-    </application>
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+    <activity
+        android:name="com.isotope11.blogreader.BlogViewWebActivity"
+        android:label="@string/title_activity_blog_view_web" >
+    </activity>
+    
+  <receiver android:name="RecentBlogPostWidgetProvider" >
+    <intent-filter>
+      <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+    </intent-filter>
+    <meta-data android:name="android.appwidget.provider"
+        android:resource="@xml/recent_blog_post_widget_provider" />
+  </receiver>
+  </application>
 
 </manifest>
