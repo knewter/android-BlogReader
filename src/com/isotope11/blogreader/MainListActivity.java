@@ -1,19 +1,24 @@
 package com.isotope11.blogreader;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 
 import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -67,7 +72,7 @@ public class MainListActivity extends ListActivity {
     if(mBlogData == null){
       updateDisplayForError();
     } else {
-      BlogPostsAdapterFactory adapterFactory = new BlogPostsAdapterFactory(this, mBlogData, android.R.layout.simple_list_item_2);
+      BlogPostsAdapterFactory adapterFactory = new BlogPostsAdapterFactory(this, mBlogData, R.layout.post_item);
       setListAdapter(adapterFactory.getAdapter());
     }
   }
@@ -129,14 +134,43 @@ public class MainListActivity extends ListActivity {
 
           BlogPost blogPost = (BlogPost) getItem(pos);
 
-          TextView text = (TextView) view.findViewById(android.R.id.text1);
+          TextView text = (TextView) view.findViewById(R.id.text1);
           text.setText(blogPost.getTitle());
 
-          text = (TextView) view.findViewById(android.R.id.text2);
+          text = (TextView) view.findViewById(R.id.text2);
           text.setText(blogPost.getAuthor());
+
+          ImageView contactImage = (ImageView) view.findViewById(R.id.contact_image);
+          new DownloadImageTask(contactImage).execute(blogPost.getAuthorAvatar());
+
           return view;
         }
       };
+    }
+  }
+
+  private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
+    ImageView bmImage;
+
+    public DownloadImageTask(ImageView bmImage) {
+      this.bmImage = bmImage;
+    }
+
+    protected Bitmap doInBackground(String... urls) {
+      String urldisplay = urls[0];
+      Bitmap mIcon11 = null;
+      try {
+        InputStream in = new java.net.URL(urldisplay).openStream();
+        mIcon11 = BitmapFactory.decodeStream(in);
+      } catch (Exception e) {
+        Log.e("Error", e.getMessage());
+        e.printStackTrace();
+      }
+      return mIcon11;
+    }
+
+    protected void onPostExecute(Bitmap result) {
+      bmImage.setImageBitmap(result);
     }
   }
 }

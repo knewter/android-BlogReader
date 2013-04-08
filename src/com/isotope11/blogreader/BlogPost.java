@@ -1,8 +1,16 @@
 package com.isotope11.blogreader;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.text.Html;
 import android.util.Log;
 
@@ -48,7 +56,17 @@ public class BlogPost {
     return url;
   }
 
-	private void logException(Exception e) {
-		Log.e(TAG, "Exception caught", e);
-	}
+  public String getAuthorAvatar(){
+    String relativeUrl = "";
+    try {
+      relativeUrl = mData.getJSONObject(KEY_AUTHOR).getString("avatar_url");
+    } catch (JSONException e) {
+      logException(e);
+    }
+    return "http://isotope11.com" + relativeUrl;
+  }
+
+  private void logException(Exception e) {
+    Log.e(TAG, "Exception caught", e);
+  }
 }
