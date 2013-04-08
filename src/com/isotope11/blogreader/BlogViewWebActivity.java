@@ -4,6 +4,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import android.annotation.SuppressLint;
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
@@ -44,15 +45,27 @@ public class BlogViewWebActivity extends Activity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.blog_view_web, menu);
+
+		// gets the activity's default ActionBar
+    ActionBar actionBar = getActionBar();
+    actionBar.show();
+
+    // set the app icon as an action to go home
+    // we are home so we don't need it
+    actionBar.setDisplayHomeAsUpEnabled(true);
+
 		return true;
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		int itemId = item.getItemId();
-		if (itemId == R.id.action_share) {
-			sharePost();
-		}
+    switch(item.getItemId()){
+      case R.id.action_share:
+        sharePost();
+      case android.R.id.home:
+         Intent goHome = new Intent(this, MainListActivity.class);
+         startActivity(goHome);
+    }
 
 		return super.onOptionsItemSelected(item);
 	}

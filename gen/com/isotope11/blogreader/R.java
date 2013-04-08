@@ -29,11 +29,12 @@ public final class R {
     }
     public static final class drawable {
         public static final int i11_rings=0x7f020000;
-        public static final int ic_action_share=0x7f020001;
-        public static final int ic_launcher=0x7f020002;
+        public static final int ic_action_refresh=0x7f020001;
+        public static final int ic_action_share=0x7f020002;
+        public static final int ic_launcher=0x7f020003;
     }
     public static final class id {
-        public static final int action_settings=0x7f0b0007;
+        public static final int action_refresh=0x7f0b0007;
         public static final int action_share=0x7f0b0006;
         public static final int contact_image=0x7f0b0002;
         public static final int progressBar1=0x7f0b0001;
@@ -53,7 +54,7 @@ public final class R {
         public static final int main_list=0x7f0a0001;
     }
     public static final class string {
-        public static final int action_settings=0x7f070001;
+        public static final int action_refresh=0x7f070001;
         public static final int action_share=0x7f070007;
         public static final int app_name=0x7f070000;
         public static final int error_message=0x7f070005;

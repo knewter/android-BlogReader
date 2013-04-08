@@ -1,28 +1,28 @@
 package com.isotope11.blogreader;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 
+import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.androidquery.AQuery;
 
 public class MainListActivity extends ListActivity {
 
@@ -35,16 +35,20 @@ public class MainListActivity extends ListActivity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main_list);
 
-    mProgressBar = (ProgressBar) findViewById(R.id.progressBar1);
-
-    if(isNetworkAvailable()){
-      GetBlogPostsTask getBlogPostsTask = new GetBlogPostsTask();
-      mProgressBar.setVisibility(View.VISIBLE);
-      getBlogPostsTask.execute();
-    } else {
-      Toast.makeText(this, "No network available.", Toast.LENGTH_LONG).show();
-    }
+    getBlogPosts();
   }
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.main_list, menu);
+
+		// gets the activity's default ActionBar
+    ActionBar actionBar = getActionBar();
+    actionBar.show();
+
+		return true;
+	}
 
   @Override
   protected void onListItemClick(ListView l, View v, int position, long id) {
@@ -55,6 +59,27 @@ public class MainListActivity extends ListActivity {
     intent.setData(Uri.parse(blogUrl));
     startActivity(intent);
   }
+
+  public void getBlogPosts(){
+    mProgressBar = (ProgressBar) findViewById(R.id.progressBar1);
+    if(isNetworkAvailable()){
+      GetBlogPostsTask getBlogPostsTask = new GetBlogPostsTask();
+      mProgressBar.setVisibility(View.VISIBLE);
+      getBlogPostsTask.execute();
+    } else {
+      Toast.makeText(this, "No network available.", Toast.LENGTH_LONG).show();
+    }
+  }
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+    switch(item.getItemId()){
+      case R.id.action_refresh:
+        getBlogPosts();
+    }
+
+		return super.onOptionsItemSelected(item);
+	}
 
   private boolean isNetworkAvailable() {
     ConnectivityManager manager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
@@ -132,45 +157,17 @@ public class MainListActivity extends ListActivity {
             view = View.inflate(mContext, mLayout, null);
           }
 
+          AQuery aq = new AQuery(view);
+
           BlogPost blogPost = (BlogPost) getItem(pos);
 
-          TextView text = (TextView) view.findViewById(R.id.text1);
-          text.setText(blogPost.getTitle());
-
-          text = (TextView) view.findViewById(R.id.text2);
-          text.setText(blogPost.getAuthor());
-
-          ImageView contactImage = (ImageView) view.findViewById(R.id.contact_image);
-          new DownloadImageTask(contactImage).execute(blogPost.getAuthorAvatar());
+          aq.id(R.id.text1).text(blogPost.getTitle());
+          aq.id(R.id.text2).text(blogPost.getAuthor());
+          aq.id(R.id.contact_image).image(blogPost.getAuthorAvatar());
 
           return view;
         }
       };
-    }
-  }
-
-  private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
-    ImageView bmImage;
-
-    public DownloadImageTask(ImageView bmImage) {
-      this.bmImage = bmImage;
-    }
-
-    protected Bitmap doInBackground(String... urls) {
-      String urldisplay = urls[0];
-      Bitmap mIcon11 = null;
-      try {
-        InputStream in = new java.net.URL(urldisplay).openStream();
-        mIcon11 = BitmapFactory.decodeStream(in);
-      } catch (Exception e) {
-        Log.e("Error", e.getMessage());
-        e.printStackTrace();
-      }
-      return mIcon11;
-    }
-
-    protected void onPostExecute(Bitmap result) {
-      bmImage.setImageBitmap(result);
     }
   }
 }
